@@ -9,3 +9,7 @@ docker run --name my_postgres_container -e POSTGRES_DB=<YOUR_DB_NAME> -e POSTGRE
 ```
 go get github.com/joho/godotenv
 ```
+3. Install library for Postgresql connection
+```
+go get github.com/lib/pq
+```
