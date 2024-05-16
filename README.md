@@ -13,3 +13,7 @@ go get github.com/joho/godotenv
 ```
 go get github.com/lib/pq
 ```
+4. Install library for uuid generation
+```
+go get github.com/google/uuid
+```
