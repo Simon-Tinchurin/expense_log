@@ -17,3 +17,8 @@ go get github.com/lib/pq
 ```
 go get github.com/google/uuid
 ```
+5. Install Gin framework for API development
+https://gin-gonic.com/docs/quickstart/
+```
+go get -u github.com/gin-gonic/gin
+```
