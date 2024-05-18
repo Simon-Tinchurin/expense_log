@@ -10,11 +10,7 @@ import (
 )
 
 var (
-	dbname string
-	dbuser string
-	dbpass string
-	dbhost string
-	dbport string
+	dbname, dbuser, dbpass, dbhost, dbport string
 )
 
 func init() {
