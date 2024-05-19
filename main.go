@@ -2,10 +2,13 @@ package main
 
 import (
 	"expense_log/types"
+	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/joho/godotenv"
 )
 
 var expTypes = []types.ExpenseType{
@@ -13,7 +16,16 @@ var expTypes = []types.ExpenseType{
 	{ID: uuid.New(), Name: "Clothes"},
 }
 
+func init() {
+	err := godotenv.Load()
+	if err != nil {
+		fmt.Println("Error loading .env file:", err)
+	}
+}
+
 func main() {
+	port := os.Getenv("APP_PORT")
+
 	r := gin.Default()
 
 	r.GET("/expType", func(c *gin.Context) {
@@ -33,5 +45,5 @@ func main() {
 		c.JSON(http.StatusCreated, newExpType)
 	})
 
-	r.Run(":8080")
+	r.Run(port)
 }
