@@ -46,7 +46,6 @@ func main() {
 	// Installing extension to automatically create id
 	// Creating ExpenseType table
 	_, err = db.Exec(`
-		CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 		CREATE TABLE expense_types (
 			id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

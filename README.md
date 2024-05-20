@@ -11,6 +11,7 @@ go get github.com/joho/godotenv
 ```
 3. Install library for Postgresql connection
 ```
+go get -u github.com/jmoiron/sqlx
 go get github.com/lib/pq
 ```
 4. Install library for uuid generation

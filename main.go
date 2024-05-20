@@ -1,49 +1,43 @@
 package main
 
 import (
-	"expense_log/types"
+	"expense_log/aggregator"
+	"expense_log/db"
 	"fmt"
-	"net/http"
+	"log"
 	"os"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 )
 
-var expTypes = []types.ExpenseType{
-	{ID: uuid.New(), Name: "Groceries"},
-	{ID: uuid.New(), Name: "Clothes"},
-}
+var (
+	dbname, dbuser, dbpass, dbport string
+)
 
 func init() {
 	err := godotenv.Load()
 	if err != nil {
 		fmt.Println("Error loading .env file:", err)
 	}
+	dbname = os.Getenv("DB_NAME")
+	dbuser = os.Getenv("POSTGRES_USER")
+	dbpass = os.Getenv("POSTGRES_PASSWORD")
+	dbport = os.Getenv("APP_PORT")
 }
 
 func main() {
-	port := os.Getenv("APP_PORT")
+	// Connecting to the DB
+	dataSourceName := fmt.Sprintf("user=%s password=%s dbname=%s sslmode=disable", dbuser, dbpass, dbname)
+
+	store, err := db.NewExpenseStore(dataSourceName)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	r := gin.Default()
 
-	r.GET("/expType", func(c *gin.Context) {
-		c.JSON(http.StatusOK, expTypes)
-	})
+	r.POST("/expType", aggregator.HandlePostExpType(store))
 
-	r.POST("/expType", func(c *gin.Context) {
-		var newExpType types.ExpenseType
-
-		if err := c.ShouldBindJSON(&newExpType); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-
-		newExpType.ID = uuid.New()
-
-		c.JSON(http.StatusCreated, newExpType)
-	})
-
-	r.Run(port)
+	r.Run(dbport)
 }
