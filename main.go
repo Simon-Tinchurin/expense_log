@@ -37,6 +37,7 @@ func main() {
 
 	r := gin.Default()
 
+	r.GET("/expType", aggregator.HandleGetExpType(store))
 	r.POST("/expType", aggregator.HandlePostExpType(store))
 
 	r.Run(dbport)
