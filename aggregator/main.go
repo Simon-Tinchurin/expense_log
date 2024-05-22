@@ -15,7 +15,7 @@ type ExpenseTypeRequest struct {
 	Name string `json:"name" binding:"required"`
 }
 
-func HandlePostExpType(store *db.ExpenseStore) gin.HandlerFunc {
+func HandlePostExpType(store *db.ExpenseTypeStore) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req ExpenseTypeRequest
 
@@ -47,7 +47,7 @@ func HandlePostExpType(store *db.ExpenseStore) gin.HandlerFunc {
 	}
 }
 
-func HandleGetExpType(store *db.ExpenseStore) gin.HandlerFunc {
+func HandleGetExpType(store *db.ExpenseTypeStore) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req struct {
 			Name string `json:"name" binding:"required"`
