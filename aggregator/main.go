@@ -71,3 +71,13 @@ func HandleGetExpType(store *db.ExpenseTypeStore) gin.HandlerFunc {
 		c.JSON(http.StatusOK, expenseType)
 	}
 }
+
+func HandleGetExpTypes(store *db.ExpenseTypeStore) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		allExpTypes, err := store.GetAllExpTypes()
+		if err != nil {
+			panic(err)
+		}
+		c.JSON(http.StatusOK, allExpTypes)
+	}
+}
