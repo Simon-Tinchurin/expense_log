@@ -1,6 +1,7 @@
 package db
 
 import (
+	"expense_log/types"
 	"fmt"
 	"os"
 
@@ -25,4 +26,10 @@ func NewExpenseStore(dataSourceName string) (*ExpenseTypeStore, error) {
 		return nil, err
 	}
 	return &ExpenseTypeStore{DB: db, ExpTypesTable: tableName}, nil
+}
+
+func (store *ExpenseStore) InsertExpense(expense types.Expense) error {
+	query := fmt.Sprintf("INSERT INTO %s (id, date, expense_type_id, price, comment) VALUES ($1, $2)", store.ExpenseTable)
+	_, err := store.DB.Exec(query, expense.ID, expense.Date, expense.ExpenseType.ID, expense.Price, expense.Comment)
+	return err
 }
