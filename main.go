@@ -30,17 +30,22 @@ func main() {
 	// Connecting to the DB
 	dataSourceName := fmt.Sprintf("user=%s password=%s dbname=%s sslmode=disable", dbuser, dbpass, dbname)
 
-	store, err := db.NewExpenseTypesStore(dataSourceName)
+	expTypeStore, err := db.NewExpenseTypesStore(dataSourceName)
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	expStore, err := db.NewExpenseStore(dataSourceName)
+	if err != nil {
+		log.Fatal(err)
+	}
 	r := gin.Default()
 
-	r.GET("/expType", aggregator.HandleGetExpType(store))
-	r.POST("/expType", aggregator.HandlePostExpType(store))
+	r.GET("/expType", aggregator.HandleGetExpType(expTypeStore))
+	r.POST("/expType", aggregator.HandlePostExpType(expTypeStore))
 
-	r.GET("/expTypes", aggregator.HandleGetExpTypes(store))
+	r.GET("/expTypes", aggregator.HandleGetExpTypes(expTypeStore))
+
+	r.POST("/new-expense", aggregator.HandlePostExpense(expStore))
 
 	r.Run(dbport)
 }

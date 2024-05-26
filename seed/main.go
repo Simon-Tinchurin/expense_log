@@ -88,7 +88,7 @@ func main() {
 	// Creating ExpenseType table only if it doesn't exist
 	query := fmt.Sprintf(`
 		CREATE TABLE IF NOT EXISTS %s (
-			id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+			id UUID PRIMARY KEY,
 			name VARCHAR(255) NOT NULL
 		);
 	`, expTypeTableName)
@@ -110,13 +110,13 @@ func main() {
 	// Creating Expenses table only if it doesn't exist
 	query = fmt.Sprintf(`
 		CREATE TABLE IF NOT EXISTS %s (
-			id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+			id UUID PRIMARY KEY,
 			date INT NOT NULL,
 			expense_type_id UUID REFERENCES %s(id),
 			price FLOAT NOT NULL,
 			comment TEXT
 		);
-	`, expensesTable, expensesTable)
+	`, expensesTable, expTypeTableName)
 
 	_, err = db.Exec(query)
 	if err != nil {
