@@ -34,3 +34,14 @@ func (store *ExpenseStore) InsertExpense(expense types.Expense) error {
 	_, err := store.DB.Exec(query, expense.ID, expense.Date, expense.ExpenseTypeId, expense.Price, expense.Comment)
 	return err
 }
+
+func (store *ExpenseStore) GetExpense(id string) (types.Expense, error) {
+	var expense types.Expense
+	query := fmt.Sprintf("SELECT * FROM %s WHERE id = $1", store.ExpenseTable)
+	err := store.DB.QueryRow(query, id).Scan(&expense.ID, &expense.Date, &expense.ExpenseTypeId,
+		&expense.Price, &expense.Comment)
+	if err != nil {
+		panic(err)
+	}
+	return expense, nil
+}

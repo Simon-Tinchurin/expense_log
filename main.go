@@ -46,6 +46,7 @@ func main() {
 	r.GET("/expTypes", aggregator.HandleGetExpTypes(expTypeStore))
 
 	r.POST("/new-expense", aggregator.HandlePostExpense(expStore))
+	r.GET("/get_expense/", aggregator.HandleGetExpenseByID(expStore))
 
 	r.Run(dbport)
 }
