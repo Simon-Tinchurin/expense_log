@@ -4,7 +4,9 @@ import (
 	"database/sql"
 	"expense_log/types"
 	"fmt"
+	"math/rand"
 	"os"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
@@ -53,6 +55,65 @@ func seedExpenseTypes(db *sql.DB) error {
 	return nil
 }
 
+func createTables(db *sql.DB) {
+	// Creating ExpenseType table only if it doesn't exist
+	query := fmt.Sprintf(`
+		CREATE TABLE IF NOT EXISTS %s (
+			id UUID PRIMARY KEY,
+			name VARCHAR(255) NOT NULL
+		);
+	`, expTypeTableName)
+
+	_, err := db.Exec(query)
+
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("ExpenseType table created successfully!")
+
+	// Creating Expenses table only if it doesn't exist
+	query = fmt.Sprintf(`
+		CREATE TABLE IF NOT EXISTS %s (
+			id UUID PRIMARY KEY,
+			date INT NOT NULL,
+			expense_type_id UUID REFERENCES %s(id),
+			price FLOAT NOT NULL,
+			comment TEXT
+		);
+	`, expensesTable, expTypeTableName)
+
+	_, err = db.Exec(query)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("Expenses table created successfully!")
+}
+
+func seedExpenses(db *sql.DB) {
+	expenses := []types.Expense{
+		{ID: uuid.New(), Date: int(time.Now().Unix()), Price: rand.Float64(), Comment: ""},
+		{ID: uuid.New(), Date: int(time.Now().Unix()), Price: rand.Float64(), Comment: ""},
+		{ID: uuid.New(), Date: int(time.Now().Unix()), Price: rand.Float64(), Comment: ""},
+		{ID: uuid.New(), Date: int(time.Now().Unix()), Price: rand.Float64(), Comment: ""},
+		{ID: uuid.New(), Date: int(time.Now().Unix()), Price: rand.Float64(), Comment: ""},
+		{ID: uuid.New(), Date: int(time.Now().Unix()), Price: rand.Float64(), Comment: ""},
+		{ID: uuid.New(), Date: int(time.Now().Unix()), Price: rand.Float64(), Comment: ""},
+		{ID: uuid.New(), Date: int(time.Now().Unix()), Price: rand.Float64(), Comment: ""},
+		{ID: uuid.New(), Date: int(time.Now().Unix()), Price: rand.Float64(), Comment: ""},
+		{ID: uuid.New(), Date: int(time.Now().Unix()), Price: rand.Float64(), Comment: ""},
+		{ID: uuid.New(), Date: int(time.Now().Unix()), Price: rand.Float64(), Comment: ""},
+	}
+
+	for _, expense := range expenses {
+		_, err := db.Exec(fmt.Sprintf("INSERT INTO %s (id, date, price, comment) VALUES ($1, $2, $3, $4)", expensesTable),
+			expense.ID, expense.Date, expense.Price, expense.Comment)
+		if err != nil {
+			panic(err)
+		}
+		time.Sleep(5 * time.Second)
+	}
+}
+
 func init() {
 	err := godotenv.Load()
 	if err != nil {
@@ -85,20 +146,7 @@ func main() {
 	}
 	fmt.Println("Successfully connected!")
 
-	// Creating ExpenseType table only if it doesn't exist
-	query := fmt.Sprintf(`
-		CREATE TABLE IF NOT EXISTS %s (
-			id UUID PRIMARY KEY,
-			name VARCHAR(255) NOT NULL
-		);
-	`, expTypeTableName)
-
-	_, err = db.Exec(query)
-
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("ExpenseType table created successfully!")
+	createTables(db)
 
 	// Seeding the expense types
 	err = seedExpenseTypes(db)
@@ -107,20 +155,6 @@ func main() {
 	}
 	fmt.Println("Expense types seeded successfully!")
 
-	// Creating Expenses table only if it doesn't exist
-	query = fmt.Sprintf(`
-		CREATE TABLE IF NOT EXISTS %s (
-			id UUID PRIMARY KEY,
-			date INT NOT NULL,
-			expense_type_id UUID REFERENCES %s(id),
-			price FLOAT NOT NULL,
-			comment TEXT
-		);
-	`, expensesTable, expTypeTableName)
+	seedExpenses(db)
 
-	_, err = db.Exec(query)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("Expenses table created successfully!")
 }
