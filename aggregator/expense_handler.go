@@ -3,7 +3,6 @@ package aggregator
 import (
 	"expense_log/db"
 	"expense_log/types"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -11,10 +10,10 @@ import (
 )
 
 type ExpenseRequest struct {
-	Date          int     `json:"date"`
-	ExpenseTypeId string  `json:"expense_type_id"`
-	Price         float64 `json:"price"`
-	Comment       string  `json:"comment"`
+	Date            int     `json:"date"`
+	ExpenseTypeName string  `json:"expense_type_name"`
+	Price           float64 `json:"price"`
+	Comment         string  `json:"comment"`
 }
 
 func HandlePostExpense(store *db.ExpenseStore) gin.HandlerFunc {
@@ -24,19 +23,24 @@ func HandlePostExpense(store *db.ExpenseStore) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		expTypeId, err := uuid.Parse(req.ExpenseTypeId)
+
+		expTypeId, err := store.GetExpenseTypeIdByName(req.ExpenseTypeName)
 		if err != nil {
-			panic(err)
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid expense type name"})
+			return
 		}
 
 		newExpense := types.Expense{
-			ID:            uuid.New(),
-			Date:          req.Date,
-			ExpenseTypeId: expTypeId,
-			Price:         req.Price,
-			Comment:       req.Comment,
+			ID:   uuid.New(),
+			Date: req.Date,
+			ExpenseType: types.ExpenseType{
+				ID:   expTypeId,
+				Name: req.ExpenseTypeName,
+			},
+			Price:   req.Price,
+			Comment: req.Comment,
 		}
-		fmt.Println(newExpense)
+
 		if err := store.InsertExpense(newExpense); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return

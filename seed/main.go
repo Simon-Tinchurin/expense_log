@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"expense_log/types"
 	"fmt"
+	"math"
 	"math/rand"
 	"os"
 	"time"
@@ -89,29 +90,45 @@ func createTables(db *sql.DB) {
 	fmt.Println("Expenses table created successfully!")
 }
 
-func seedExpenses(db *sql.DB) {
-	expenses := []types.Expense{
-		{ID: uuid.New(), Date: int(time.Now().Unix()), Price: rand.Float64(), Comment: ""},
-		{ID: uuid.New(), Date: int(time.Now().Unix()), Price: rand.Float64(), Comment: ""},
-		{ID: uuid.New(), Date: int(time.Now().Unix()), Price: rand.Float64(), Comment: ""},
-		{ID: uuid.New(), Date: int(time.Now().Unix()), Price: rand.Float64(), Comment: ""},
-		{ID: uuid.New(), Date: int(time.Now().Unix()), Price: rand.Float64(), Comment: ""},
-		{ID: uuid.New(), Date: int(time.Now().Unix()), Price: rand.Float64(), Comment: ""},
-		{ID: uuid.New(), Date: int(time.Now().Unix()), Price: rand.Float64(), Comment: ""},
-		{ID: uuid.New(), Date: int(time.Now().Unix()), Price: rand.Float64(), Comment: ""},
-		{ID: uuid.New(), Date: int(time.Now().Unix()), Price: rand.Float64(), Comment: ""},
-		{ID: uuid.New(), Date: int(time.Now().Unix()), Price: rand.Float64(), Comment: ""},
-		{ID: uuid.New(), Date: int(time.Now().Unix()), Price: rand.Float64(), Comment: ""},
+func seedExpenses(db *sql.DB) error {
+	// Retrieve all expense types from the table
+	rows, err := db.Query(fmt.Sprintf("SELECT id, name FROM %s", expTypeTableName))
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	// Store expense types in a slice
+	var expenseTypes []types.ExpenseType
+	for rows.Next() {
+		var expType types.ExpenseType
+		if err := rows.Scan(&expType.ID, &expType.Name); err != nil {
+			return err
+		}
+		expenseTypes = append(expenseTypes, expType)
+	}
+	if err = rows.Err(); err != nil {
+		return err
 	}
 
-	for _, expense := range expenses {
-		_, err := db.Exec(fmt.Sprintf("INSERT INTO %s (id, date, price, comment) VALUES ($1, $2, $3, $4)", expensesTable),
-			expense.ID, expense.Date, expense.Price, expense.Comment)
-		if err != nil {
-			panic(err)
+	// Seed expenses
+	for i := 0; i < 50; i++ {
+		expType := expenseTypes[rand.Intn(len(expenseTypes))] // Select a random expense type
+		expense := types.Expense{
+			ID:          uuid.New(),
+			Date:        int(time.Now().Unix()),
+			ExpenseType: expType,
+			Price:       math.Round((rand.Float64()*100)*100) / 100, // Assuming price is between 0 and 100 for testing purposes
+			Comment:     fmt.Sprintf("Test comment %d", i+1),
 		}
-		time.Sleep(5 * time.Second)
+		query := fmt.Sprintf("INSERT INTO %s (id, date, expense_type_id, price, comment) VALUES ($1, $2, $3, $4, $5)", expensesTable)
+		_, err := db.Exec(query, expense.ID, expense.Date, expense.ExpenseType.ID, expense.Price, expense.Comment)
+		if err != nil {
+			return err
+		}
+		fmt.Println(expense)
 	}
+	return nil
 }
 
 func init() {
@@ -146,15 +163,16 @@ func main() {
 	}
 	fmt.Println("Successfully connected!")
 
-	createTables(db)
+	// createTables(db)
 
 	// Seeding the expense types
-	err = seedExpenseTypes(db)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("Expense types seeded successfully!")
+	// err = seedExpenseTypes(db)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// fmt.Println("Expense types seeded successfully!")
 
+	// seeding the expenses for tests
 	seedExpenses(db)
 
 }
