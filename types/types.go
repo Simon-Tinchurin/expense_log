@@ -4,7 +4,7 @@ import "github.com/google/uuid"
 
 type Expense struct {
 	ID          uuid.UUID   `json:"id"`
-	Date        int         `json:"date"`
+	Date        int64       `json:"date"`
 	ExpenseType ExpenseType `json:"expense_type"`
 	Price       float64     `json:"price"`
 	Comment     string      `json:"comment"`

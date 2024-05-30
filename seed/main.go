@@ -116,7 +116,7 @@ func seedExpenses(db *sql.DB) error {
 		expType := expenseTypes[rand.Intn(len(expenseTypes))] // Select a random expense type
 		expense := types.Expense{
 			ID:          uuid.New(),
-			Date:        int(time.Now().Unix()),
+			Date:        int64(time.Now().Unix()),
 			ExpenseType: expType,
 			Price:       math.Round((rand.Float64()*100)*100) / 100, // Assuming price is between 0 and 100 for testing purposes
 			Comment:     fmt.Sprintf("Test comment %d", i+1),

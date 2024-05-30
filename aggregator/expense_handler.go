@@ -4,16 +4,28 @@ import (
 	"expense_log/db"
 	"expense_log/types"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
+
+const TimeFormat = "02-01-2006 15:04:05"
 
 type ExpenseRequest struct {
 	Date            int     `json:"date"`
 	ExpenseTypeName string  `json:"expense_type_name"`
 	Price           float64 `json:"price"`
 	Comment         string  `json:"comment"`
+}
+
+// ExpenseResponse represents the structure of the expense response
+type ExpenseResponse struct {
+	ID          uuid.UUID         `json:"id"`
+	Date        string            `json:"date"`
+	ExpenseType types.ExpenseType `json:"expense_type"`
+	Price       float64           `json:"price"`
+	Comment     string            `json:"comment"`
 }
 
 func HandlePostExpense(store *db.ExpenseStore) gin.HandlerFunc {
@@ -32,7 +44,7 @@ func HandlePostExpense(store *db.ExpenseStore) gin.HandlerFunc {
 
 		newExpense := types.Expense{
 			ID:   uuid.New(),
-			Date: req.Date,
+			Date: int64(req.Date),
 			ExpenseType: types.ExpenseType{
 				ID:   expTypeId,
 				Name: req.ExpenseTypeName,
@@ -78,7 +90,19 @@ func HandleGetExpenseByID(store *db.ExpenseStore) gin.HandlerFunc {
 			return
 		}
 
+		// Convert the Unix timestamp to a readable date format
+		readableDate := time.Unix(expense.Date, 0).Format(TimeFormat)
+
+		// Create the response
+		response := ExpenseResponse{
+			ID:          expense.ID,
+			Date:        readableDate,
+			ExpenseType: expense.ExpenseType,
+			Price:       expense.Price,
+			Comment:     expense.Comment,
+		}
+
 		// Return the expense data as JSON
-		c.JSON(http.StatusOK, expense)
+		c.JSON(http.StatusOK, response)
 	}
 }
