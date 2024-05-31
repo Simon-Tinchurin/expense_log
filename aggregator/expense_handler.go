@@ -13,7 +13,7 @@ import (
 const TimeFormat = "02-01-2006 15:04:05"
 
 type ExpenseRequest struct {
-	Date            int     `json:"date"`
+	// Date            time.Time `json:"date"`
 	ExpenseTypeName string  `json:"expense_type_name"`
 	Price           float64 `json:"price"`
 	Comment         string  `json:"comment"`
@@ -44,7 +44,7 @@ func HandlePostExpense(store *db.ExpenseStore) gin.HandlerFunc {
 
 		newExpense := types.Expense{
 			ID:   uuid.New(),
-			Date: int64(req.Date),
+			Date: time.Now(),
 			ExpenseType: types.ExpenseType{
 				ID:   expTypeId,
 				Name: req.ExpenseTypeName,
@@ -90,13 +90,10 @@ func HandleGetExpenseByID(store *db.ExpenseStore) gin.HandlerFunc {
 			return
 		}
 
-		// Convert the Unix timestamp to a readable date format
-		readableDate := time.Unix(expense.Date, 0).Format(TimeFormat)
-
 		// Create the response
 		response := ExpenseResponse{
 			ID:          expense.ID,
-			Date:        readableDate,
+			Date:        expense.Date.Format(TimeFormat),
 			ExpenseType: expense.ExpenseType,
 			Price:       expense.Price,
 			Comment:     expense.Comment,

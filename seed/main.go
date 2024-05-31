@@ -76,7 +76,7 @@ func createTables(db *sql.DB) {
 	query = fmt.Sprintf(`
 		CREATE TABLE IF NOT EXISTS %s (
 			id UUID PRIMARY KEY,
-			date INT NOT NULL,
+			date TIMESTAMPTZ NOT NULL,
 			expense_type_id UUID REFERENCES %s(id),
 			price FLOAT NOT NULL,
 			comment TEXT
@@ -116,7 +116,7 @@ func seedExpenses(db *sql.DB) error {
 		expType := expenseTypes[rand.Intn(len(expenseTypes))] // Select a random expense type
 		expense := types.Expense{
 			ID:          uuid.New(),
-			Date:        int64(time.Now().Unix()),
+			Date:        time.Now(),
 			ExpenseType: expType,
 			Price:       math.Round((rand.Float64()*100)*100) / 100, // Assuming price is between 0 and 100 for testing purposes
 			Comment:     fmt.Sprintf("Test comment %d", i+1),
