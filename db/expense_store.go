@@ -68,3 +68,35 @@ func (store *ExpenseStore) GetExpenseTypeIdByName(name string) (uuid.UUID, error
 	}
 	return id, nil
 }
+
+// GetExpensesByType retrieves expenses by their type name from the data source
+func (store *ExpenseStore) GetExpensesByType(typeName string) ([]types.Expense, error) {
+	query := `
+		SELECT e.id, e.date, e.expense_type_id, e.price, e.comment, et.name
+		FROM expenses e
+		JOIN expense_types et ON e.expense_type_id = et.id
+		WHERE et.name = $1
+	`
+	rows, err := store.DB.Query(query, typeName)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var expenses []types.Expense
+	for rows.Next() {
+		var expense types.Expense
+		var expenseTypeName string
+		if err := rows.Scan(&expense.ID, &expense.Date, &expense.ExpenseType.ID, &expense.Price, &expense.Comment, &expenseTypeName); err != nil {
+			return nil, err
+		}
+		expense.ExpenseType.Name = expenseTypeName
+		expenses = append(expenses, expense)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return expenses, nil
+}

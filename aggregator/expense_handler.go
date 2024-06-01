@@ -19,6 +19,11 @@ type ExpenseRequest struct {
 	Comment         string  `json:"comment"`
 }
 
+// ExpenseIDRequest represents the request structure for retrieving an expense by ID
+type ExpenseIDRequest struct {
+	ID string `json:"id"`
+}
+
 // ExpenseResponse represents the structure of the expense response
 type ExpenseResponse struct {
 	ID          uuid.UUID         `json:"id"`
@@ -62,11 +67,6 @@ func HandlePostExpense(store *db.ExpenseStore) gin.HandlerFunc {
 	}
 }
 
-// ExpenseIDRequest represents the request structure for retrieving an expense by ID
-type ExpenseIDRequest struct {
-	ID string `json:"id"`
-}
-
 // HandleGetExpenseByID handles POST requests to retrieve an expense by its ID from the request body
 func HandleGetExpenseByID(store *db.ExpenseStore) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -100,6 +100,39 @@ func HandleGetExpenseByID(store *db.ExpenseStore) gin.HandlerFunc {
 		}
 
 		// Return the expense data as JSON
+		c.JSON(http.StatusOK, response)
+	}
+}
+
+// HandleGetExpenseByType handles POST requests to retrieve expenses by their type name from the request body
+func HandleGetExpenseByType(store *db.ExpenseStore) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var req ExpenseTypeRequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		// Retrieve the expenses from the store
+		expenses, err := store.GetExpensesByType(req.Name)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve expenses"})
+			return
+		}
+
+		// Create the response
+		var response []ExpenseResponse
+		for _, expense := range expenses {
+			response = append(response, ExpenseResponse{
+				ID:          expense.ID,
+				Date:        expense.Date.Format(TimeFormat),
+				ExpenseType: expense.ExpenseType,
+				Price:       expense.Price,
+				Comment:     expense.Comment,
+			})
+		}
+
+		// Return the expenses data as JSON
 		c.JSON(http.StatusOK, response)
 	}
 }
