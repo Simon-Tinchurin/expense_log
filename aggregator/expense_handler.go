@@ -33,7 +33,7 @@ type ExpenseResponse struct {
 	Comment     string            `json:"comment"`
 }
 
-func HandlePostExpense(store *db.ExpenseStore) gin.HandlerFunc {
+func HandlePostExpense(store *db.PostgresExpStore) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req ExpenseRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
@@ -68,7 +68,7 @@ func HandlePostExpense(store *db.ExpenseStore) gin.HandlerFunc {
 }
 
 // HandleGetExpenseByID handles POST requests to retrieve an expense by its ID from the request body
-func HandleGetExpenseByID(store *db.ExpenseStore) gin.HandlerFunc {
+func HandleGetExpenseByID(store *db.PostgresExpStore) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req ExpenseIDRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
@@ -105,7 +105,7 @@ func HandleGetExpenseByID(store *db.ExpenseStore) gin.HandlerFunc {
 }
 
 // HandleGetExpenseByType handles POST requests to retrieve expenses by their type name from the request body
-func HandleGetExpenseByType(store *db.ExpenseStore) gin.HandlerFunc {
+func HandleGetExpenseByType(store *db.PostgresExpStore) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req ExpenseTypeRequest
 		if err := c.ShouldBindJSON(&req); err != nil {

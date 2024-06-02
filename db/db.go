@@ -2,6 +2,7 @@ package db
 
 type Store struct {
 	ExpenseType ExpenseTypeStore
+	Expense     ExpenseStore
 }
 
 type Pagination struct {

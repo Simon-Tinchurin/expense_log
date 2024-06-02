@@ -11,12 +11,19 @@ import (
 	"github.com/lib/pq"
 )
 
-type ExpenseStore struct {
+type ExpenseStore interface {
+	InsertExpense(types.Expense) error
+	GetExpense(string) (types.Expense, error)
+	GetExpenseTypeIdByName(string) (uuid.UUID, error)
+	GetExpensesByType(string) ([]types.Expense, error)
+}
+
+type PostgresExpStore struct {
 	DB           *sqlx.DB
 	ExpenseTable string
 }
 
-func NewExpenseStore(dataSourceName string) (*ExpenseStore, error) {
+func NewExpenseStore(dataSourceName string) (*PostgresExpStore, error) {
 	err := godotenv.Load()
 	if err != nil {
 		return nil, fmt.Errorf("error loading .env file")
@@ -27,16 +34,16 @@ func NewExpenseStore(dataSourceName string) (*ExpenseStore, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &ExpenseStore{DB: db, ExpenseTable: tableName}, nil
+	return &PostgresExpStore{DB: db, ExpenseTable: tableName}, nil
 }
 
-func (store *ExpenseStore) InsertExpense(expense types.Expense) error {
+func (store *PostgresExpStore) InsertExpense(expense types.Expense) error {
 	query := fmt.Sprintf("INSERT INTO %s (id, date, expense_type_id, price, comment) VALUES ($1, $2, $3, $4, $5)", pq.QuoteIdentifier(store.ExpenseTable))
 	_, err := store.DB.Exec(query, expense.ID, expense.Date, expense.ExpenseType.ID, expense.Price, expense.Comment)
 	return err
 }
 
-func (store *ExpenseStore) GetExpense(id string) (types.Expense, error) {
+func (store *PostgresExpStore) GetExpense(id string) (types.Expense, error) {
 	var expense types.Expense
 	query := fmt.Sprintf(`
         SELECT e.id, e.date, e.expense_type_id, e.price, e.comment,
@@ -59,7 +66,7 @@ func (store *ExpenseStore) GetExpense(id string) (types.Expense, error) {
 	return expense, nil
 }
 
-func (store *ExpenseStore) GetExpenseTypeIdByName(name string) (uuid.UUID, error) {
+func (store *PostgresExpStore) GetExpenseTypeIdByName(name string) (uuid.UUID, error) {
 	var id uuid.UUID
 	query := "SELECT id FROM expense_types WHERE name = $1"
 	err := store.DB.QueryRow(query, name).Scan(&id)
@@ -70,7 +77,7 @@ func (store *ExpenseStore) GetExpenseTypeIdByName(name string) (uuid.UUID, error
 }
 
 // GetExpensesByType retrieves expenses by their type name from the data source
-func (store *ExpenseStore) GetExpensesByType(typeName string) ([]types.Expense, error) {
+func (store *PostgresExpStore) GetExpensesByType(typeName string) ([]types.Expense, error) {
 	query := `
 		SELECT e.id, e.date, e.expense_type_id, e.price, e.comment, et.name
 		FROM expenses e
