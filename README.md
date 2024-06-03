@@ -23,3 +23,9 @@ https://gin-gonic.com/docs/quickstart/
 ```
 go get -u github.com/gin-gonic/gin
 ```
+
+### TODO (Project Plan)
+
+- [ ] Integrate interfaces for stores
+- [ ] Integrate logging middleware?
+- [ ] Create GET all expenses route
