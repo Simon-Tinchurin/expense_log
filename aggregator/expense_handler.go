@@ -136,3 +136,28 @@ func HandleGetExpenseByType(store *db.PostgresExpStore) gin.HandlerFunc {
 		c.JSON(http.StatusOK, response)
 	}
 }
+
+func HandleGetThisMonthExpenses(store *db.PostgresExpStore) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// Retrieve the expenses from the store
+		expenses, err := store.GetThisMonthExpenses()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve expenses"})
+			return
+		}
+
+		// Create the response
+		var response []ExpenseResponse
+		for _, expense := range expenses {
+			response = append(response, ExpenseResponse{
+				ID:          expense.ID,
+				Date:        expense.Date.Format(TimeFormat),
+				ExpenseType: expense.ExpenseType,
+				Price:       expense.Price,
+				Comment:     expense.Comment,
+			})
+		}
+		// Return the expenses data as JSON
+		c.JSON(http.StatusOK, response)
+	}
+}

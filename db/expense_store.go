@@ -4,6 +4,7 @@ import (
 	"expense_log/types"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -103,6 +104,44 @@ func (store *PostgresExpStore) GetExpensesByType(typeName string) ([]types.Expen
 
 	if err := rows.Err(); err != nil {
 		return nil, err
+	}
+
+	return expenses, nil
+}
+
+func (store *PostgresExpStore) GetThisMonthExpenses() ([]types.Expense, error) {
+	currentYear, currentMonth, _ := time.Now().Date()
+	currentMonthStart := time.Date(currentYear, currentMonth, 1, 0, 0, 0, 0, time.UTC)
+	query := `SELECT e.id, e.date, e.expense_type_id, e.price, e.comment, et.id, et.name
+	FROM expenses e
+	JOIN expense_types et ON e.expense_type_id = et.id
+	WHERE date_trunc('month', e.date) = $1`
+
+	rows, err := store.DB.Query(query, currentMonthStart)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var expenses []types.Expense
+	for rows.Next() {
+		var expense types.Expense
+		var expenseTypeID uuid.UUID
+		var expenseTypeName string
+		err := rows.Scan(
+			&expense.ID,
+			&expense.Date,
+			&expenseTypeID,
+			&expense.Price,
+			&expense.Comment,
+			&expenseTypeID,
+			&expenseTypeName,
+		)
+		if err != nil {
+			return nil, err
+		}
+		expense.ExpenseType = types.ExpenseType{ID: expenseTypeID, Name: expenseTypeName}
+		expenses = append(expenses, expense)
 	}
 
 	return expenses, nil
