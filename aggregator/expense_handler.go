@@ -24,6 +24,10 @@ type ExpenseIDRequest struct {
 	ID string `json:"id"`
 }
 
+type MonthRequest struct {
+	Month int `json:"month"`
+}
+
 // ExpenseResponse represents the structure of the expense response
 type ExpenseResponse struct {
 	ID          uuid.UUID         `json:"id"`
@@ -137,10 +141,21 @@ func HandleGetExpenseByType(store *db.PostgresExpStore) gin.HandlerFunc {
 	}
 }
 
-func HandleGetThisMonthExpenses(store *db.PostgresExpStore) gin.HandlerFunc {
+func HandleGetMonthExpenses(store *db.PostgresExpStore) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		var req MonthRequest
+		if err := c.BindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+			return
+		}
+
+		var month *int
+		if req.Month >= 1 && req.Month <= 12 {
+			month = &req.Month
+		}
+
 		// Retrieve the expenses from the store
-		expenses, err := store.GetThisMonthExpenses()
+		expenses, err := store.GetMonthExpenses(month)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve expenses"})
 			return
@@ -157,6 +172,7 @@ func HandleGetThisMonthExpenses(store *db.PostgresExpStore) gin.HandlerFunc {
 				Comment:     expense.Comment,
 			})
 		}
+
 		// Return the expenses data as JSON
 		c.JSON(http.StatusOK, response)
 	}

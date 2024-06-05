@@ -109,15 +109,31 @@ func (store *PostgresExpStore) GetExpensesByType(typeName string) ([]types.Expen
 	return expenses, nil
 }
 
-func (store *PostgresExpStore) GetThisMonthExpenses() ([]types.Expense, error) {
+func (store *PostgresExpStore) GetMonthExpenses(month *int) ([]types.Expense, error) {
+	var year, selectedMonth int
 	currentYear, currentMonth, _ := time.Now().Date()
-	currentMonthStart := time.Date(currentYear, currentMonth, 1, 0, 0, 0, 0, time.UTC)
+
+	if month != nil && *month >= 1 && *month <= 12 {
+		selectedMonth = *month
+		if selectedMonth > int(currentMonth) {
+			year = currentYear - 1 // если выбранный месяц больше текущего, предполагаем, что это прошлый год
+		} else {
+			year = currentYear
+		}
+	} else {
+		year = currentYear
+		selectedMonth = int(currentMonth)
+	}
+
+	monthStart := time.Date(year, time.Month(selectedMonth), 1, 0, 0, 0, 0, time.UTC)
+	monthEnd := monthStart.AddDate(0, 1, 0) // первый день следующего месяца
+
 	query := `SELECT e.id, e.date, e.expense_type_id, e.price, e.comment, et.id, et.name
 	FROM expenses e
 	JOIN expense_types et ON e.expense_type_id = et.id
-	WHERE date_trunc('month', e.date) = $1`
+	WHERE e.date >= $1 AND e.date < $2`
 
-	rows, err := store.DB.Query(query, currentMonthStart)
+	rows, err := store.DB.Query(query, monthStart, monthEnd)
 	if err != nil {
 		return nil, err
 	}
