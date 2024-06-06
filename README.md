@@ -28,4 +28,3 @@ go get -u github.com/gin-gonic/gin
 
 - [ ] Integrate interfaces for stores
 - [ ] Integrate logging middleware?
-- [ ] Create GET all expenses route

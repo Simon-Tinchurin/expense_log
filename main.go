@@ -41,14 +41,13 @@ func main() {
 	r := gin.Default()
 
 	r.GET("/expType", aggregator.HandleGetExpType(expTypeStore))
+	r.GET("/expTypes", aggregator.HandleGetExpTypes(expTypeStore))
 	r.POST("/expType", aggregator.HandlePostExpType(expTypeStore))
 
-	r.GET("/expTypes", aggregator.HandleGetExpTypes(expTypeStore))
-
-	r.POST("/new-expense", aggregator.HandlePostExpense(expStore))
-	r.GET("/get_expense/", aggregator.HandleGetExpenseByID(expStore))
+	r.GET("/get_expense", aggregator.HandleGetExpenseByID(expStore))
 	r.GET("/expenses-by-type", aggregator.HandleGetExpenseByType(expStore))
-	r.GET("/this-month", aggregator.HandleGetMonthExpenses(expStore))
+	r.GET("/expenses-for-month", aggregator.HandleGetMonthExpenses(expStore))
+	r.POST("/new-expense", aggregator.HandlePostExpense(expStore))
 
 	r.Run(dbport)
 }
